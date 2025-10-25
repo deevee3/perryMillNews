@@ -1,0 +1,7 @@
+name = "perrymill-worker"
+main = "src/index.js"
+compatibility_date = "2025-10-24"
+
+[vars]
+# Optional defaults for local development
+API_BASE_URL = ""

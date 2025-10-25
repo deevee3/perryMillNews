@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Perry Mill</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <header class="masthead">
+          <div class="brandline">
+            <h1>Perry Mill</h1>
+            <span class="brand-by" aria-hidden="true">by</span>
+            <img src="glenride-logo.png" alt="Glenride" class="logo" />
+            <span class="sr-only">Glenride</span>
+          </div>
+        </header>
+
+        <section class="catalog" aria-labelledby="catalog-title">
+          <div class="catalog-header">
+            <h2 id="catalog-title">Editions</h2>
+            <p class="catalog-subtitle">Choose a curated briefing to explore fresh reporting.</p>
+          </div>
+          <div class="catalog-list" id="feed-nav"></div>
+        </section>
+
+        <form id="feed-form" class="controls" novalidate>
+          <input type="hidden" id="category" name="category" value="top-stories" />
+
+          <div class="form-row">
+            <div class="field">
+              <label for="limit">Max articles</label>
+              <input id="limit" name="limit" type="number" min="5" max="100" value="30" />
+              <small>Adjust the length of each curated edition.</small>
+            </div>
+
+            <div class="field checkbox">
+              <label class="inline">
+                <input id="autoRefresh" type="checkbox" />
+                Refresh every 5 minutes
+              </label>
+              <span id="auto-refresh-label" class="hint">Manual refresh</span>
+            </div>
+          </div>
+
+          <button id="submit" type="submit">Refresh</button>
+          <div id="status" role="status" aria-live="polite"></div>
+        </form>
+      </aside>
+
+      <section class="content" id="results">
+        <section class="library-launch" aria-labelledby="library-panel-title">
+          <div class="library-title-group">
+            <h2 id="library-panel-title">Your reading list</h2>
+            <p class="library-subtitle">Jump back into saved stories and recommendations.</p>
+          </div>
+          <button type="button" class="library-open-button" id="library-open" aria-haspopup="dialog" aria-controls="library-modal">
+            Open reading list
+          </button>
+        </section>
+
+        <section class="insights-card">
+          <div class="insights-meta">
+            <span id="last-updated" class="timestamp" aria-live="polite">Awaiting first refresh…</span>
+            <span id="active-edition" class="sr-only" hidden></span>
+          </div>
+
+          <div class="summary-callout">
+            <div class="headline-group">
+              <h3 id="analysis-headline">Perry Mill Summary</h3>
+              <p class="analysis-meta" id="analysis-meta"></p>
+            </div>
+            <button id="ai-analyze" type="button" class="ai-button">Mill My News</button>
+          </div>
+
+          <article class="analysis" id="analysis" hidden>
+            <div id="analysis-content"></div>
+          </article>
+        </section>
+
+        <header class="stories-header">
+          <h2 id="summary">Real stories, right now</h2>
+        </header>
+
+        <div class="featured-area" id="featured"></div>
+
+        <div class="grid" id="entries"></div>
+      </section>
+    </main>
+
+    <aside class="library-modal" id="library-modal" aria-hidden="true">
+      <div class="library-backdrop" id="library-backdrop" tabindex="-1"></div>
+      <section class="library-panel" role="dialog" aria-modal="true" aria-labelledby="library-modal-title" tabindex="-1">
+        <header class="library-header">
+          <div class="library-title-group">
+            <h2 id="library-modal-title">Your reading list</h2>
+            <p class="library-subtitle">Jump back into saved stories and recommendations.</p>
+          </div>
+          <button type="button" class="library-close" id="library-close" aria-label="Close reading list">×</button>
+        </header>
+        <div class="library-content">
+          <div class="library-actions">
+            <button type="button" class="library-button" data-library="saved">Saved</button>
+            <button type="button" class="library-button" data-library="recommended">Recommended</button>
+          </div>
+          <div class="library-empty" id="library-empty" hidden>No stories yet. Start saving articles to build your list.</div>
+          <ul class="library-list" id="library-list" aria-live="polite"></ul>
+        </div>
+      </section>
+    </aside>
+
+    <aside class="reader" id="reader" aria-hidden="true">
+      <div class="reader-backdrop" id="reader-backdrop" tabindex="-1"></div>
+      <section class="reader-panel" role="dialog" aria-modal="true" aria-labelledby="reader-title" tabindex="-1">
+        <header class="reader-header">
+          <div class="reader-meta">
+            <span class="reader-source" id="reader-source"></span>
+            <time class="reader-time" id="reader-time"></time>
+          </div>
+          <button type="button" class="reader-close" id="reader-close" aria-label="Close article">×</button>
+        </header>
+        <div class="reader-content" id="reader-scroll">
+          <img id="reader-image" alt="" hidden />
+          <h2 id="reader-title"></h2>
+          <p class="reader-subtitle" id="reader-subtitle"></p>
+          <div class="reader-body" id="reader-body"></div>
+        </div>
+        <footer class="reader-footer">
+          <a id="reader-link" class="reader-link" href="#" target="_blank" rel="noopener noreferrer">View original source</a>
+        </footer>
+      </section>
+    </aside>
+
+    <script src="config.js"></script>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

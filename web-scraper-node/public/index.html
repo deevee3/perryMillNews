@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Book Scraper UI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Book Scraper</h1>
+        <p class="lead">
+          Configure the scrape parameters, then run the scraper to view results below.
+        </p>
+      </header>
+
+      <section class="card">
+        <form id="scrape-form" novalidate>
+          <div class="field">
+            <label for="urlTemplate">URL template</label>
+            <input
+              id="urlTemplate"
+              name="urlTemplate"
+              type="text"
+              value="https://books.toscrape.com/catalogue/page-{{page}}.html"
+              required
+            />
+            <small>Use <code>{{page}}</code> as placeholder for page number.</small>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="startPage">Start page</label>
+              <input id="startPage" name="startPage" type="number" min="1" value="1" required />
+            </div>
+
+            <div class="field">
+              <label for="totalPages">Total pages</label>
+              <input id="totalPages" name="totalPages" type="number" min="1" max="50" value="10" required />
+            </div>
+          </div>
+
+          <button id="submit" type="submit">Run scrape</button>
+        </form>
+
+        <div id="status" role="alert" aria-live="polite"></div>
+      </section>
+
+      <section class="card results" id="results">
+        <header>
+          <h2>Results</h2>
+          <p id="summary"></p>
+        </header>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Rating</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

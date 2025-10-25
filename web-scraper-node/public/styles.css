@@ -1,0 +1,169 @@
+:root {
+  color-scheme: light dark;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  font-size: 16px;
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+main.container {
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 3rem);
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+header h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.lead {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.card header h2 {
+  margin: 0;
+}
+
+.card header p {
+  margin-top: 0.25rem;
+  color: #94a3b8;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.field {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+}
+
+button {
+  cursor: pointer;
+  align-self: flex-start;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  border: none;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+#status {
+  min-height: 1.5rem;
+  color: #fbbf24;
+  margin-top: -0.5rem;
+}
+
+#status.error {
+  color: #f87171;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+thead {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+thead th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+tbody td {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  vertical-align: top;
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+a {
+  color: #38bdf8;
+}
+
+@media (max-width: 720px) {
+  main.container {
+    padding: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  table {
+    min-width: unset;
+  }
+}
