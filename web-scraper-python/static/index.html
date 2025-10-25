@@ -4,136 +4,1076 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Perry Mill</title>
-    <link rel="stylesheet" href="styles.css" />
+    <style>
+:root {
+  --color-bg: #ffffff;
+  --color-text: #121212;
+  --color-text-muted: #666666;
+  --color-border: #e5e5e5;
+  --color-accent: #326891;
+  --color-accent-hover: #264d6d;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+body.overlay-open {
+  overflow: hidden;
+}
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid var(--color-text);
+  padding: 1rem 0;
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.75rem;
+}
+
+.site-date {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-library {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-library:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.masthead {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.site-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  font-style: italic;
+}
+
+.site-tagline {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+}
+
+/* Navigation */
+.nav-editions {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.catalog-item {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  border-right: 1px solid var(--color-border);
+  transition: color 0.2s;
+  color: var(--color-text);
+}
+
+.catalog-item:first-child {
+  border-left: 1px solid var(--color-border);
+}
+
+.catalog-item:hover,
+.catalog-item.active {
+  color: var(--color-accent);
+}
+
+/* Main Content */
+.main-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* Featured Story */
+.featured-story {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.featured-card {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.featured-image,
+.featured-card img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.story-category {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.meta-time {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.story-title,
+.featured-card h3 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.story-title a,
+.featured-card h3 a {
+  color: var(--color-text);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.story-title a:hover,
+.featured-card h3 a:hover {
+  color: var(--color-accent);
+}
+
+.subtitle,
+.featured-card .subtitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.summary {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.article-meta,
+.story-meta {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.meta-source img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.source-name {
+  font-weight: 600;
+  color: var(--color-text);
+  display: inline;
+}
+
+.source-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  display: inline;
+}
+
+.source-link:hover {
+  text-decoration: underline;
+}
+
+/* Hide [object Object] text nodes */
+.article-meta::before,
+.article-meta::after,
+.story-meta::before,
+.story-meta::after {
+  content: none;
+}
+
+/* Ensure only intended children display */
+.article-meta > *:not(.meta-source):not(.meta-time),
+.story-meta > *:not(.meta-source):not(.meta-time) {
+  display: none;
+}
+
+.card-actions,
+.story-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.action,
+.btn-action {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.action:hover,
+.btn-action:hover {
+  border-color: var(--color-text);
+}
+
+.action-primary,
+.btn-action.primary {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+.label-desktop {
+  display: inline;
+}
+
+.label-mobile {
+  display: none;
+}
+
+/* Sidebar */
+.sidebar-section {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.sidebar-title {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-text);
+}
+
+.sidebar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.control-group label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.control-group input[type="number"] {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem;
+  background: var(--color-bg);
+}
+
+.btn-refresh {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-refresh:hover {
+  background: var(--color-accent);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-message {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+}
+
+.status-message.error {
+  color: #c41e3a;
+}
+
+/* AI Analysis */
+.analysis-box {
+  background: #f8f8f8;
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.analysis-title {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analysis-meta {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.btn-analyze {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-analyze:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-analyze:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.analysis-content {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.analysis-content p {
+  margin-bottom: 1rem;
+}
+
+.analysis-content p:last-child {
+  margin-bottom: 0;
+}
+
+.analysis-content .lede {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Story Grid */
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-text);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.article-card {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
+}
+
+.article-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+  border-radius: 4px;
+}
+
+.article-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.article-card h3 a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.article-card h3 a:hover {
+  color: var(--color-accent);
+}
+
+.article-card .subtitle {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Modals */
+.modal,
+.library-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 1000;
+}
+
+.modal.is-open,
+.library-modal.is-open {
+  display: block;
+}
+
+.modal-backdrop,
+.library-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-panel,
+.library-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-bg);
+  width: min(800px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header,
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-text);
+}
+
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.btn-close,
+.library-close {
+  font-size: 2rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text);
+}
+
+.library-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.library-button {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text);
+}
+
+.library-button:hover,
+.library-button.active {
+  border-bottom-color: var(--color-text);
+}
+
+.library-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.library-item {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.library-item-copy {
+  flex: 1;
+}
+
+.library-item-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.library-item-meta {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.library-open {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.library-empty {
+  font-family: var(--font-sans);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Reader Modal */
+.reader {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 1001;
+}
+
+.reader.is-open {
+  display: block;
+}
+
+.reader-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.reader-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(600px, 100vw);
+  height: 100%;
+  background: var(--color-bg);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  padding: 2rem;
+  transform: translateX(0);
+}
+
+.reader-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.reader-meta {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reader-source,
+.reader-time {
+  display: inline;
+}
+
+.reader-close {
+  font-size: 2rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text);
+}
+
+.reader-content img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+}
+
+.reader-content h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.reader-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.reader-body {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.reader-body p {
+  margin-bottom: 1rem;
+}
+
+.reader-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.reader-link {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.reader-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-editions {
+    flex-wrap: wrap;
+  }
+  
+  .catalog-item {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .story-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .reader-panel {
+    width: 100vw;
+  }
+
+  .label-desktop {
+    display: none;
+  }
+
+  .label-mobile {
+    display: inline;
+  }
+}
+
+/* Utility Classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* CRITICAL: Hide [object Object] errors completely */
+.article-meta,
+.story-meta,
+.featured-card .article-meta,
+.article-card .article-meta {
+  font-size: 0 !important; /* Force hide all text nodes */
+  color: transparent !important; /* Make text invisible */
+}
+
+/* Restore visibility only for known good elements */
+.article-meta > .meta-source,
+.article-meta > .meta-time,
+.story-meta > .meta-source,
+.story-meta > .meta-time,
+.article-meta .meta-source,
+.article-meta .meta-time,
+.story-meta .meta-source,
+.story-meta .meta-time {
+  font-size: 0.75rem !important;
+  color: var(--color-text-muted) !important;
+}
+
+.meta-source *,
+.meta-time * {
+  font-size: 0.75rem !important;
+  color: var(--color-text-muted) !important;
+}
+
+.source-name {
+  color: var(--color-text) !important;
+}
+
+.source-link {
+  color: var(--color-accent) !important;
+}
+
+/* Hide empty elements and text nodes */
+.article-meta *:empty,
+.story-meta *:empty {
+  display: none !important;
+}
+
+/* Reader meta fixes */
+.reader-meta {
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.reader-meta > *,
+.reader-source,
+.reader-time {
+  font-size: 0.75rem !important;
+  color: var(--color-text-muted) !important;
+}
+    </style>
   </head>
   <body>
-    <main class="shell">
-      <aside class="sidebar">
-        <header class="masthead">
-          <div class="brandline">
-            <h1>Perry Mill</h1>
-            <span class="brand-by" aria-hidden="true">by</span>
-            <img src="glenride-logo.png" alt="Glenride" class="logo" />
-            <span class="sr-only">Glenride</span>
-          </div>
-        </header>
-
-        <section class="catalog" aria-labelledby="catalog-title">
-          <div class="catalog-header">
-            <h2 id="catalog-title">Editions</h2>
-            <p class="catalog-subtitle">Choose a curated briefing to explore fresh reporting.</p>
-          </div>
-          <div class="catalog-list" id="feed-nav"></div>
-        </section>
-
-        <form id="feed-form" class="controls" novalidate>
-          <input type="hidden" id="category" name="category" value="top-stories" />
-
-          <div class="form-row">
-            <div class="field">
-              <label for="limit">Max articles</label>
-              <input id="limit" name="limit" type="number" min="5" max="100" value="30" />
-              <small>Adjust the length of each curated edition.</small>
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-container">
+        <div class="header-top">
+          <div class="site-date" id="current-date"></div>
+          <div class="header-actions">
+            <div class="auth-controls" id="auth-controls">
+              <button class="btn-auth" id="auth-login" type="button">Sign in</button>
+              <div class="auth-user" id="auth-user" hidden>
+                <span class="auth-email" id="auth-email"></span>
+                <button class="btn-auth-secondary" id="auth-logout" type="button">Sign out</button>
+              </div>
             </div>
+            <button class="btn-library" id="library-open" type="button">Saved Stories</button>
+          </div>
+        </div>
+        
+        <div class="masthead">
+          <h1 class="site-title">Perry Mill</h1>
+          <p class="site-tagline">Curated News Intelligence</p>
+        </div>
+        
+        <nav class="nav-editions" id="feed-nav">
+          <!-- Navigation buttons will be inserted here by app.js -->
+        </nav>
+      </div>
+    </header>
 
-            <div class="field checkbox">
-              <label class="inline">
-                <input id="autoRefresh" type="checkbox" />
-                Refresh every 5 minutes
-              </label>
-              <span id="auto-refresh-label" class="hint">Manual refresh</span>
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="content-grid">
+        <!-- Primary Content -->
+        <div>
+          <!-- Featured Story Area -->
+          <div id="featured"></div>
+          
+          <!-- AI Analysis -->
+          <div class="sidebar-section">
+            <div class="analysis-box">
+              <div class="analysis-header">
+                <div>
+                  <h3 class="analysis-title" id="analysis-headline">Editorial Summary</h3>
+                  <p class="analysis-meta" id="analysis-meta"></p>
+                </div>
+                <button type="button" class="btn-analyze" id="ai-analyze">Generate</button>
+              </div>
+              <div id="analysis" hidden>
+                <div class="analysis-content" id="analysis-content"></div>
+              </div>
             </div>
           </div>
-
-          <button id="submit" type="submit">Refresh</button>
-          <div id="status" role="status" aria-live="polite"></div>
-        </form>
-      </aside>
-
-      <section class="content" id="results">
-        <section class="library-launch" aria-labelledby="library-panel-title">
-          <div class="library-title-group">
-            <h2 id="library-panel-title">Your reading list</h2>
-            <p class="library-subtitle">Jump back into saved stories and recommendations.</p>
+          
+          <!-- Story Grid -->
+          <h2 class="section-title" id="summary">Latest Stories</h2>
+          <div class="story-grid" id="entries"></div>
+        </div>
+        
+        <!-- Sidebar -->
+        <aside>
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Edition Settings</h3>
+            <form id="feed-form" class="sidebar-controls" novalidate>
+              <input type="hidden" id="category" name="category" value="top-stories" />
+              
+              <div class="control-group">
+                <label for="limit">Articles per edition</label>
+                <input id="limit" name="limit" type="number" min="5" max="100" value="30" />
+              </div>
+              
+              <div class="control-group">
+                <label>
+                  <input id="autoRefresh" type="checkbox" />
+                  <span style="text-transform: none; letter-spacing: 0;">Auto-refresh every 5 minutes</span>
+                </label>
+                <span class="status-message" id="auto-refresh-label">Manual refresh</span>
+              </div>
+              
+              <button id="submit" type="submit" class="btn-refresh">Refresh Edition</button>
+              <div id="status" class="status-message" role="status"></div>
+            </form>
           </div>
-          <button type="button" class="library-open-button" id="library-open" aria-haspopup="dialog" aria-controls="library-modal">
-            Open reading list
-          </button>
-        </section>
-
-        <section class="insights-card">
-          <div class="insights-meta">
-            <span id="last-updated" class="timestamp" aria-live="polite">Awaiting first refresh…</span>
-            <span id="active-edition" class="sr-only" hidden></span>
+          
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Edition Info</h3>
+            <p class="status-message" id="last-updated">Awaiting first refresh…</p>
+            <p class="status-message" id="active-edition" hidden></p>
           </div>
-
-          <div class="summary-callout">
-            <div class="headline-group">
-              <h3 id="analysis-headline">Perry Mill Summary</h3>
-              <p class="analysis-meta" id="analysis-meta"></p>
-            </div>
-            <button id="ai-analyze" type="button" class="ai-button">Mill My News</button>
-          </div>
-
-          <article class="analysis" id="analysis" hidden>
-            <div id="analysis-content"></div>
-          </article>
-        </section>
-
-        <header class="stories-header">
-          <h2 id="summary">Real stories, right now</h2>
-        </header>
-
-        <div class="featured-area" id="featured"></div>
-
-        <div class="grid" id="entries"></div>
-      </section>
+        </aside>
+      </div>
     </main>
 
+    <!-- Library Modal -->
     <aside class="library-modal" id="library-modal" aria-hidden="true">
-      <div class="library-backdrop" id="library-backdrop" tabindex="-1"></div>
-      <section class="library-panel" role="dialog" aria-modal="true" aria-labelledby="library-modal-title" tabindex="-1">
-        <header class="library-header">
-          <div class="library-title-group">
-            <h2 id="library-modal-title">Your reading list</h2>
-            <p class="library-subtitle">Jump back into saved stories and recommendations.</p>
-          </div>
-          <button type="button" class="library-close" id="library-close" aria-label="Close reading list">×</button>
-        </header>
-        <div class="library-content">
-          <div class="library-actions">
-            <button type="button" class="library-button" data-library="saved">Saved</button>
-            <button type="button" class="library-button" data-library="recommended">Recommended</button>
-          </div>
-          <div class="library-empty" id="library-empty" hidden>No stories yet. Start saving articles to build your list.</div>
-          <ul class="library-list" id="library-list" aria-live="polite"></ul>
+      <div class="library-backdrop" id="library-backdrop"></div>
+      <section class="library-panel" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="library-header">
+          <h2 class="modal-title">Your Library</h2>
+          <button class="library-close" id="library-close" type="button" aria-label="Close saved stories">×</button>
         </div>
+        <div class="library-actions">
+          <button type="button" class="library-button" data-library="saved">Saved</button>
+          <button type="button" class="library-button" data-library="recommended">Recommended</button>
+        </div>
+        <div class="library-empty" id="library-empty" hidden>No stories yet.</div>
+        <ul class="library-list" id="library-list"></ul>
       </section>
     </aside>
 
-    <aside class="reader" id="reader" aria-hidden="true">
-      <div class="reader-backdrop" id="reader-backdrop" tabindex="-1"></div>
-      <section class="reader-panel" role="dialog" aria-modal="true" aria-labelledby="reader-title" tabindex="-1">
-        <header class="reader-header">
-          <div class="reader-meta">
-            <span class="reader-source" id="reader-source"></span>
-            <time class="reader-time" id="reader-time"></time>
+    <!-- Auth Modal -->
+    <aside class="auth-modal modal" id="auth-modal" aria-hidden="true">
+      <div class="modal-backdrop" id="auth-backdrop"></div>
+      <section class="modal-panel" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="modal-header">
+          <h2 class="modal-title">Welcome to Perry Mill</h2>
+          <button class="btn-close" id="auth-close" type="button" aria-label="Close sign-in">×</button>
+        </div>
+        <form class="auth-form" id="auth-form" novalidate>
+          <p class="auth-copy">Sign in to fetch and analyze your editions with the new Perry Mill Worker.</p>
+          <label class="auth-field">
+            <span>Email address</span>
+            <input id="auth-email-input" name="email" type="email" autocomplete="email" required minlength="5" maxlength="254" />
+          </label>
+          <label class="auth-field">
+            <span>Password</span>
+            <input id="auth-password-input" name="password" type="password" autocomplete="current-password" required minlength="12" />
+            <small>Use the same credentials you created in Perry Mill.</small>
+          </label>
+          <div class="auth-actions">
+            <button class="btn-action primary" id="auth-submit" type="submit">Sign in</button>
+            <button class="btn-action" id="auth-cancel" type="button">Cancel</button>
           </div>
-          <button type="button" class="reader-close" id="reader-close" aria-label="Close article">×</button>
-        </header>
-        <div class="reader-content" id="reader-scroll">
+          <p class="auth-error" id="auth-error" role="alert" hidden></p>
+        </form>
+      </section>
+    </aside>
+
+    <!-- Reader Modal -->
+    <aside class="reader" id="reader" aria-hidden="true">
+      <div class="reader-backdrop" id="reader-backdrop"></div>
+      <section class="reader-panel" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="reader-header">
+          <div class="reader-meta">
+            <span id="reader-source"></span> · <time id="reader-time"></time>
+          </div>
+          <button type="button" class="reader-close" id="reader-close">&times;</button>
+        </div>
+        <div class="reader-content">
           <img id="reader-image" alt="" hidden />
           <h2 id="reader-title"></h2>
           <p class="reader-subtitle" id="reader-subtitle"></p>
           <div class="reader-body" id="reader-body"></div>
         </div>
-        <footer class="reader-footer">
-          <a id="reader-link" class="reader-link" href="#" target="_blank" rel="noopener noreferrer">View original source</a>
-        </footer>
+        <div class="reader-footer">
+          <a id="reader-link" class="reader-link" href="#" target="_blank" rel="noopener noreferrer">View Original Article →</a>
+        </div>
       </section>
     </aside>
 
     <script src="config.js"></script>
     <script src="app.js" type="module"></script>
+    <script>
+      // Set current date
+      const dateEl = document.getElementById('current-date');
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      dateEl.textContent = now.toLocaleDateString('en-US', options);
+    </script>
   </body>
 </html>

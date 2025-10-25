@@ -8,13 +8,404 @@ const normalizeBaseUrl = (value) => {
 };
 
 const apiBaseUrl = normalizeBaseUrl(runtimeConfig.apiBaseUrl);
+const authBaseUrl = normalizeBaseUrl(runtimeConfig.authBaseUrl) || apiBaseUrl;
 
 const withApiBase = (path) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
 };
 
-const apiFetch = (path, options) => fetch(withApiBase(path), options);
+const withAuthBase = (path) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return authBaseUrl ? `${authBaseUrl}${normalizedPath}` : normalizedPath;
+};
+
+let apiFetch = (path, options) => fetch(withApiBase(path), options);
+
+const AUTH_STORAGE_KEY = 'perryMill:auth';
+const ACCESS_TOKEN_TTL_SECONDS = 15 * 60; // Mirrors Worker access token TTL
+const REFRESH_TOKEN_FALLBACK_TTL_SECONDS = 14 * 24 * 60 * 60;
+const ACCESS_TOKEN_EXPIRY_GRACE_SECONDS = 60;
+
+const safeJsonParse = (raw, fallback = null) => {
+  if (!raw || typeof raw !== 'string') {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn('Failed to parse JSON payload.', error);
+    return fallback;
+  }
+};
+
+const loadConfig = async ({ silent = false } = {}) => {
+  if (configLoaded) {
+    return true;
+  }
+
+  const authenticated = await requireAuthentication({ silent });
+  if (!authenticated) {
+    return false;
+  }
+
+  try {
+    const response = await authFetch('/api/config', { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    const data = await response.json();
+    applyConfig(data);
+    configLoaded = true;
+    return true;
+  } catch (error) {
+    console.error('Config load error:', error);
+    setStatus(error.message || 'Failed to load Perry Mill configuration.', true);
+    return false;
+  }
+};
+
+const handleAuthSubmit = async (event) => {
+  event.preventDefault();
+
+  if (!authForm) {
+    return;
+  }
+
+  const formData = new FormData(authForm);
+  const payload = Object.fromEntries(formData.entries());
+
+  const email = payload.email?.toString().trim() ?? '';
+  const password = payload.password?.toString() ?? '';
+
+  if (!email || !password) {
+    showAuthError('Email and password are required.');
+    return;
+  }
+
+  if (password.length < 12) {
+    showAuthError('Password must be at least 12 characters long.');
+    return;
+  }
+
+  setAuthSubmitting(true);
+  showAuthError('');
+
+  const { data, error } = await authApiRequest('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  setAuthSubmitting(false);
+
+  if (error) {
+    showAuthError(error.message || 'Unable to sign in.');
+    return;
+  }
+
+  const { accessToken, refreshToken, expiresIn, user } = data;
+  setAuthState({
+    accessToken,
+    refreshToken,
+    accessTokenExpiresAt: computeAccessExpiry(),
+    refreshTokenExpiresAt: computeRefreshExpiry(expiresIn),
+    user: user ?? null,
+  });
+
+  closeAuthModal();
+  setStatus('Signed in to Perry Mill.');
+  const configured = await loadConfig({ silent: true });
+  if (configured) {
+    fetchFeed();
+  }
+};
+
+const handleLogout = async () => {
+  if (!authState.refreshToken) {
+    resetAuthState();
+    return;
+  }
+
+  try {
+    await fetch(withAuthBase('/api/auth/logout'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: authState.refreshToken }),
+    });
+  } catch (error) {
+    console.warn('Logout request failed:', error);
+  } finally {
+    resetAuthState();
+    configLoaded = false;
+    setStatus('Signed out.');
+    clearResults();
+  }
+};
+
+const isAuthenticated = () => Boolean(authState.accessToken);
+
+const requireAuthentication = async ({ silent = false } = {}) => {
+  const authed = await ensureAccessToken();
+  if (authed) {
+    return true;
+  }
+
+  if (!silent) {
+    setStatus('Sign in to continue.', true);
+  }
+
+  openAuthModal();
+
+  return false;
+};
+
+const loadStoredAuthState = () => {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const parsed = safeJsonParse(raw, {});
+
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, user } = parsed;
+
+    if (!accessToken || !refreshToken || !accessTokenExpiresAt) {
+      return null;
+    }
+
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt: refreshTokenExpiresAt ?? null,
+      user: user && typeof user === 'object' ? user : null,
+    };
+  } catch (error) {
+    console.warn('Failed to read auth state from storage:', error);
+    return null;
+  }
+};
+
+const persistAuthState = (state) => {
+  if (!state) {
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear auth state:', error);
+    }
+    return;
+  }
+
+  try {
+    const payload = {
+      accessToken: state.accessToken,
+      refreshToken: state.refreshToken,
+      accessTokenExpiresAt: state.accessTokenExpiresAt,
+      refreshTokenExpiresAt: state.refreshTokenExpiresAt ?? null,
+      user: state.user ?? null,
+    };
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn('Failed to persist auth state:', error);
+  }
+};
+
+const clearAuthState = () => {
+  persistAuthState(null);
+};
+
+const computeAccessExpiry = () => new Date(Date.now() + ACCESS_TOKEN_TTL_SECONDS * 1000).toISOString();
+const computeRefreshExpiry = (seconds) => {
+  const ttl = typeof seconds === 'number' && Number.isFinite(seconds) ? seconds : REFRESH_TOKEN_FALLBACK_TTL_SECONDS;
+  return new Date(Date.now() + ttl * 1000).toISOString();
+};
+
+const isExpired = (isoString, graceSeconds = 0) => {
+  if (!isoString) {
+    return true;
+  }
+
+  const target = new Date(isoString).getTime();
+  if (Number.isNaN(target)) {
+    return true;
+  }
+
+  return Date.now() >= target - graceSeconds * 1000;
+};
+
+const authListeners = new Set();
+
+const notifyAuthListeners = (state) => {
+  authListeners.forEach((listener) => {
+    try {
+      listener(state);
+    } catch (error) {
+      console.warn('Auth listener error:', error);
+    }
+  });
+};
+
+const authState = {
+  accessToken: null,
+  refreshToken: null,
+  accessTokenExpiresAt: null,
+  refreshTokenExpiresAt: null,
+  user: null,
+  loading: false,
+};
+
+const setAuthState = (patch, { persist = true, notify = true } = {}) => {
+  Object.assign(authState, patch);
+
+  if (persist) {
+    if (!authState.accessToken || !authState.refreshToken) {
+      clearAuthState();
+    } else {
+      persistAuthState(authState);
+    }
+  }
+
+  if (notify) {
+    notifyAuthListeners({ ...authState });
+  }
+};
+
+const resetAuthState = ({ notify = true } = {}) => {
+  setAuthState(
+    {
+      accessToken: null,
+      refreshToken: null,
+      accessTokenExpiresAt: null,
+      refreshTokenExpiresAt: null,
+      user: null,
+    },
+    { notify }
+  );
+};
+
+const subscribeToAuth = (listener) => {
+  if (typeof listener !== 'function') {
+    return () => {};
+  }
+
+  authListeners.add(listener);
+  listener({ ...authState });
+
+  return () => {
+    authListeners.delete(listener);
+  };
+};
+
+const authFetch = async (path, options = {}, { useAuthBase = false, retry = true } = {}) => {
+  const targetUrl = useAuthBase ? withAuthBase(path) : withApiBase(path);
+
+  const headers = new Headers(options.headers || {});
+  const shouldAttachToken = !headers.has('Authorization') && authState.accessToken;
+
+  if (shouldAttachToken) {
+    headers.set('Authorization', `Bearer ${authState.accessToken}`);
+  }
+
+  const response = await fetch(targetUrl, {
+    ...options,
+    headers,
+  });
+
+  if (response.status !== 401 || !retry) {
+    return response;
+  }
+
+  const refreshed = await ensureAccessToken();
+  if (!refreshed) {
+    return response;
+  }
+
+  const retryHeaders = new Headers(options.headers || {});
+  retryHeaders.set('Authorization', `Bearer ${authState.accessToken}`);
+
+  return fetch(targetUrl, {
+    ...options,
+    headers: retryHeaders,
+  });
+};
+
+const readJsonResponse = async (response) => {
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.warn('Failed to parse response JSON:', error);
+    return {};
+  }
+};
+
+const authApiRequest = async (path, options = {}, { useAuthBase = true } = {}) => {
+  try {
+    const response = await authFetch(path, options, { useAuthBase });
+    const data = await readJsonResponse(response);
+
+    if (!response.ok) {
+      const message = data?.error || `Request failed (${response.status})`;
+      throw new Error(message);
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};
+
+const ensureAccessToken = async () => {
+  if (!authState.refreshToken) {
+    resetAuthState();
+    return false;
+  }
+
+  if (isExpired(authState.refreshTokenExpiresAt)) {
+    resetAuthState();
+    return false;
+  }
+
+  if (!isExpired(authState.accessTokenExpiresAt, ACCESS_TOKEN_EXPIRY_GRACE_SECONDS)) {
+    return true;
+  }
+
+  try {
+    const response = await fetch(withAuthBase('/api/auth/refresh'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: authState.refreshToken }),
+    });
+
+    const data = await readJsonResponse(response);
+
+    if (!response.ok) {
+      throw new Error(data?.error || `Request failed (${response.status})`);
+    }
+
+    setAuthState({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      accessTokenExpiresAt: computeAccessExpiry(),
+      refreshTokenExpiresAt: computeRefreshExpiry(data.expiresIn),
+      user: data.user ?? authState.user ?? null,
+    });
+
+    return true;
+  } catch (error) {
+    console.warn('Token refresh failed:', error);
+    resetAuthState();
+    return false;
+  }
+};
 
 const form = document.getElementById('feed-form');
 const submitBtn = document.getElementById('submit');
@@ -50,6 +441,21 @@ const readerTime = document.getElementById('reader-time');
 const readerImage = document.getElementById('reader-image');
 const readerLink = document.getElementById('reader-link');
 
+const authModal = document.getElementById('auth-modal');
+const authBackdrop = document.getElementById('auth-backdrop');
+const authCloseButton = document.getElementById('auth-close');
+const authCancelButton = document.getElementById('auth-cancel');
+const authForm = document.getElementById('auth-form');
+const authErrorEl = document.getElementById('auth-error');
+const authLoginButton = document.getElementById('auth-login');
+const authLogoutButton = document.getElementById('auth-logout');
+const authUserContainer = document.getElementById('auth-user');
+const authEmailDisplay = document.getElementById('auth-email');
+const authEmailInput = document.getElementById('auth-email-input');
+const authPasswordInput = document.getElementById('auth-password-input');
+const authSubmitButton = document.getElementById('auth-submit');
+const authControls = document.getElementById('auth-controls');
+
 const setInsightsLabel = (mode = 'idle') => {
   if (mode === 'refresh') {
     aiAnalyzeButton.textContent = 'Refresh';
@@ -66,8 +472,10 @@ const autoRefreshHint = document.getElementById('auto-refresh-label');
 let refreshTimer = null;
 let latestFeed = null;
 let config = { hasOpenAIKey: false };
+let configLoaded = false;
 let activeLibrary = 'saved';
 let lastFocusedElement = null;
+let authInitialized = false;
 
 const STORIES_HEADING = 'Real stories, right now';
 
@@ -257,6 +665,130 @@ const clearResults = () => {
   entriesContainer.innerHTML = '';
   featuredContainer.innerHTML = '';
   summaryEl.textContent = STORIES_HEADING;
+};
+
+const showAuthError = (message) => {
+  if (!authErrorEl) {
+    return;
+  }
+
+  authErrorEl.textContent = message;
+  authErrorEl.hidden = !message;
+};
+
+const setAuthSubmitting = (isSubmitting) => {
+  if (authSubmitButton) {
+    authSubmitButton.disabled = isSubmitting;
+  }
+
+  if (authLoginButton && authLoginButton.hidden === false) {
+    authLoginButton.disabled = isSubmitting;
+  }
+
+  if (authEmailInput) {
+    authEmailInput.disabled = isSubmitting;
+  }
+
+  if (authPasswordInput) {
+    authPasswordInput.disabled = isSubmitting;
+  }
+};
+
+const openAuthModal = () => {
+  if (!authModal) {
+    return;
+  }
+
+  lastFocusedElement = document.activeElement;
+  authModal.classList.add('is-open');
+  authModal.removeAttribute('aria-hidden');
+  document.body.classList.add('overlay-open');
+
+  requestAnimationFrame(() => {
+    authModal.querySelector('.modal-panel')?.focus({ preventScroll: true });
+  });
+};
+
+const closeAuthModal = () => {
+  if (!authModal) {
+    return;
+  }
+
+  authModal.classList.remove('is-open');
+  authModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('overlay-open');
+  showAuthError('');
+  authForm?.reset();
+
+  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+    lastFocusedElement.focus({ preventScroll: true });
+  }
+};
+
+const syncAuthControls = (state) => {
+  if (!authControls) {
+    return;
+  }
+
+  const isLoggedIn = Boolean(state?.accessToken && state?.user);
+
+  if (authLoginButton) {
+    authLoginButton.hidden = isLoggedIn;
+    authLoginButton.disabled = state.loading;
+  }
+
+  if (authUserContainer) {
+    authUserContainer.hidden = !isLoggedIn;
+  }
+
+  if (authEmailDisplay) {
+    authEmailDisplay.textContent = state.user?.email || '';
+  }
+
+  if (authLogoutButton) {
+    authLogoutButton.disabled = state.loading;
+  }
+};
+
+const attachAuthListeners = () => {
+  subscribeToAuth(syncAuthControls);
+};
+
+const initializeAuthFromStorage = async () => {
+  if (authInitialized) {
+    return;
+  }
+
+  authInitialized = true;
+
+  const stored = loadStoredAuthState();
+  if (!stored) {
+    resetAuthState({ notify: false });
+    return;
+  }
+
+  setAuthState({
+    ...stored,
+    refreshTokenExpiresAt: stored.refreshTokenExpiresAt ?? computeRefreshExpiry(),
+  }, { notify: false, persist: false });
+
+  if (!stored.user) {
+    await ensureAccessToken();
+    if (!authState.accessToken) {
+      return;
+    }
+
+    const response = await authFetch('/api/auth/me');
+    if (!response.ok) {
+      resetAuthState();
+      return;
+    }
+
+    const data = await readJsonResponse(response);
+    if (data?.user) {
+      setAuthState({ user: data.user });
+    }
+  }
 };
 
 const createMeta = (entry) => {
@@ -870,6 +1402,11 @@ const toggleBusy = (isBusy) => {
 };
 
 const fetchFeed = async () => {
+  const authenticated = await requireAuthentication();
+  if (!authenticated || !configLoaded) {
+    return;
+  }
+
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
 
@@ -882,7 +1419,7 @@ const fetchFeed = async () => {
   setStatus('Fetching feed…');
 
   try {
-    const response = await apiFetch('/api/feed', {
+    const response = await authFetch('/api/feed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -943,7 +1480,12 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-aiAnalyzeButton.addEventListener('click', () => {
+aiAnalyzeButton.addEventListener('click', async () => {
+  const authenticated = await requireAuthentication();
+  if (!authenticated) {
+    return;
+  }
+
   if (!latestFeed) {
     setStatus('Fetch headlines before generating a Perry Mill insight.', true);
     return;
@@ -953,7 +1495,7 @@ aiAnalyzeButton.addEventListener('click', () => {
   aiAnalyzeButton.disabled = true;
   setInsightsLabel('working');
 
-  apiFetch('/api/analyze', {
+  authFetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1011,8 +1553,55 @@ aiAnalyzeButton.addEventListener('click', () => {
     });
 });
 
-// Load default feed on startup
-fetchFeed();
+const initializeAuthUi = () => {
+  if (authLoginButton) {
+    authLoginButton.addEventListener('click', () => {
+      showAuthError('');
+      openAuthModal();
+      authEmailInput?.focus();
+    });
+  }
+
+  if (authCancelButton) {
+    authCancelButton.addEventListener('click', () => {
+      closeAuthModal();
+    });
+  }
+
+  if (authCloseButton) {
+    authCloseButton.addEventListener('click', () => {
+      closeAuthModal();
+    });
+  }
+
+  if (authBackdrop) {
+    authBackdrop.addEventListener('click', () => {
+      closeAuthModal();
+    });
+  }
+
+  if (authForm) {
+    authForm.addEventListener('submit', handleAuthSubmit);
+  }
+
+  if (authLogoutButton) {
+    authLogoutButton.addEventListener('click', handleLogout);
+  }
+};
+
+const boot = async () => {
+  attachAuthListeners();
+  initializeAuthUi();
+  await initializeAuthFromStorage();
+  const configured = await loadConfig({ silent: true });
+  if (configured) {
+    fetchFeed();
+  }
+};
+
+boot().catch((error) => {
+  console.error('Failed to initialize application:', error);
+});
 
 const applyConfig = (cfg) => {
   config = cfg;

@@ -5,3 +5,8 @@ compatibility_date = "2025-10-24"
 [vars]
 # Optional defaults for local development
 API_BASE_URL = ""
+
+[[d1_databases]]
+binding = "AUTH_DB"
+database_name = "perrymill-auth"
+database_id = "3716d3ed-167c-4d46-ad0a-e64c09d3855a"
